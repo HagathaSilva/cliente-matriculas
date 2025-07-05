@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sistema Acadêmico - Cadastro</title>
+  <title>Cadastro</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
       background: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
     }
     header {
       background-color: #4a90e2;
@@ -19,107 +17,82 @@
       padding: 30px;
       text-align: center;
       font-size: 40px;
-      font-weight: bold;
-    }
-    main {
-      flex-grow: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      box-sizing: border-box;
     }
     form {
       background: white;
+      max-width: 400px;
+      margin: 40px auto;
       padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-      width: 400px;
-      box-sizing: border-box;
-    }
-    form h2 {
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: #333;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     label {
       display: block;
-      margin-bottom: 8px;
+      margin-top: 15px;
       font-weight: bold;
-      color: #555;
     }
     input {
       width: 100%;
       padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
+      margin-top: 5px;
       box-sizing: border-box;
     }
     button {
+      margin-top: 20px;
       background-color: #4a90e2;
       color: white;
-      border: none;
-      padding: 15px;
+      padding: 12px;
       width: 100%;
-      font-size: 18px;
+      border: none;
       cursor: pointer;
+      font-size: 16px;
       border-radius: 4px;
-      transition: background-color 0.3s;
     }
     button:hover {
-      background-color: #357abd;
+      background-color: #357ABD;
     }
   </style>
 </head>
 <body>
-  <header>Sistema Acadêmico</header>
-  <main>
-    <form id="formCadastro">
-      <h2>Cadastro - Curso: <span id="cursoNome"></span></h2>
-      <label for="name">Nome Completo</label>
-      <input type="text" id="name" name="name" required />
-      <label for="cpf">CPF</label>
-      <input type="text" id="cpf" name="cpf" required pattern="\d{11}" title="Digite 11 dígitos numéricos" />
-      <label for="email">E-mail</label>
-      <input type="email" id="email" name="email" required />
-      <button type="submit">Cadastrar</button>
-    </form>
-  </main>
+  <header>Cadastro de Aluno</header>
+
+  <form id="formCadastro">
+    <div>Curso: <strong id="cursoNome"></strong></div>
+    <label for="name">Nome</label>
+    <input type="text" id="name" required />
+    <label for="cpf">CPF</label>
+    <input type="text" id="cpf" required pattern="\d{11}" />
+    <label for="email">Email</label>
+    <input type="email" id="email" required />
+    <button type="submit">Cadastrar</button>
+  </form>
 
   <script>
-    const cursoSelecionado = localStorage.getItem("cursoSelecionado") || "Nenhum curso selecionado";
+    const API_BASE = "https://api-matricula-fhevhnfnf0c8bza7.eastus2-01.azurewebsites.net";
+
+    const cursoSelecionado = localStorage.getItem("cursoSelecionado");
     document.getElementById("cursoNome").textContent = cursoSelecionado;
 
-    document.getElementById("formCadastro").addEventListener("submit", async (e) => {
+    document.getElementById("formCadastro").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const name = e.target.name.value.trim();
-      const cpf = e.target.cpf.value.trim();
-      const email = e.target.email.value.trim();
+      const name = document.getElementById("name").value;
+      const cpf = document.getElementById("cpf").value;
+      const email = document.getElementById("email").value;
 
-      try {
-        const response = await fetch("http://localhost:8080/user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name, cpf, email }),
-        });
+      const response = await fetch(`${API_BASE}/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, cpf, email })
+      });
 
-        if (!response.ok) {
-          throw new Error("Erro ao cadastrar usuário.");
-        }
-
-        const userResponse = await fetch(`http://localhost:8080/user/cpf/${cpf}`);
-        if (!userResponse.ok) throw new Error("Erro ao recuperar usuário cadastrado.");
-        const userData = await userResponse.json();
-
-        localStorage.setItem("usuarioId", userData.id);
+      if (response.ok) {
+        const userResponse = await fetch(`${API_BASE}/user/cpf/${cpf}`);
+        const user = await userResponse.json();
+        localStorage.setItem("usuarioId", user.id);
         window.location.href = "pagamento.html";
-      } catch (error) {
-        alert(error.message);
+      } else {
+        alert("Erro ao cadastrar usuário.");
       }
     });
   </script>
